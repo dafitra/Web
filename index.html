@@ -1,0 +1,1881 @@
+<!DOCTYPE html>
+<html lang="id" data-theme="light">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ASISTEN WEB</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+  <!-- ========== TOAST CONTAINER ========== -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- ========== CONFIRM DIALOG ========== -->
+  <div class="confirm-overlay" id="confirmOverlay">
+    <div class="confirm-box">
+      <div class="confirm-icon" id="confirmIcon">🗑️</div>
+      <div class="confirm-title" id="confirmTitle">Hapus Item?</div>
+      <div class="confirm-msg" id="confirmMsg">Tindakan ini tidak bisa dibatalkan.</div>
+      <div class="confirm-actions">
+        <button class="btn btn-outline" onclick="closeConfirm()">Batal</button>
+        <button class="btn btn-danger" id="confirmOkBtn">Ya, Hapus</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== SIDEBAR OVERLAY ========== -->
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeMobileSidebar()"></div>
+
+  <!-- ========== MODALS ========== -->
+
+  <!-- Finance Modal -->
+  <div class="modal-overlay" id="financeModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 class="modal-title">💰 Tambah Transaksi</h2>
+        <button class="modal-close" onclick="closeModal('financeModal')">✕</button>
+      </div>
+      <div class="form-row">
+        <label>Jenis Transaksi</label>
+        <div style="display:flex;gap:10px;">
+          <label
+            style="display:flex;align-items:center;gap:8px;font-weight:500;font-size:14px;cursor:pointer;padding:10px 16px;border:2px solid var(--border);border-radius:var(--radius-sm);flex:1;transition:var(--transition);"
+            id="typeIncomeLabel">
+            <input type="radio" name="txType" value="income" id="typeIncome" checked onchange="updateTxTypeStyle()"
+              style="width:auto;border:none;box-shadow:none;padding:0;background:transparent;"> 📈 Pemasukan
+          </label>
+          <label
+            style="display:flex;align-items:center;gap:8px;font-weight:500;font-size:14px;cursor:pointer;padding:10px 16px;border:2px solid var(--border);border-radius:var(--radius-sm);flex:1;transition:var(--transition);"
+            id="typeExpenseLabel">
+            <input type="radio" name="txType" value="expense" id="typeExpense" onchange="updateTxTypeStyle()"
+              style="width:auto;border:none;box-shadow:none;padding:0;background:transparent;"> 📉 Pengeluaran
+          </label>
+        </div>
+      </div>
+      <div class="form-row-2">
+        <div>
+          <label>Jumlah (Rp)</label>
+          <input type="number" id="txAmount" placeholder="0" min="0">
+        </div>
+        <div>
+          <label>Tanggal</label>
+          <input type="date" id="txDate">
+        </div>
+      </div>
+      <div class="form-row">
+        <label>Kategori</label>
+        <select id="txCategory">
+          <option value="gaji">💼 Gaji</option>
+          <option value="bisnis">🏢 Bisnis</option>
+          <option value="makanan">🍜 Makanan</option>
+          <option value="transport">🚗 Transport</option>
+          <option value="hiburan">🎮 Hiburan</option>
+          <option value="kesehatan">💊 Kesehatan</option>
+          <option value="pendidikan">📚 Pendidikan</option>
+          <option value="lainnya">📦 Lainnya</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label>Deskripsi</label>
+        <input type="text" id="txDesc" placeholder="Contoh: Makan siang di warung...">
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-outline" onclick="closeModal('financeModal')">Batal</button>
+        <button class="btn btn-primary" onclick="saveTransaction()">💾 Simpan</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Doc Upload Modal -->
+  <div class="modal-overlay" id="docModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 class="modal-title">📁 Upload Berkas</h2>
+        <button class="modal-close" onclick="closeModal('docModal')">✕</button>
+      </div>
+      <div class="form-row">
+        <label>Nama Berkas (opsional)</label>
+        <input type="text" id="docName" placeholder="Biarkan kosong untuk pakai nama file asli">
+      </div>
+      <div class="form-row">
+        <label>Kategori</label>
+        <select id="docCategory">
+          <option value="pekerjaan">💼 Pekerjaan</option>
+          <option value="pendidikan">📚 Pendidikan</option>
+          <option value="pribadi">🏠 Pribadi</option>
+          <option value="keuangan">💰 Keuangan</option>
+          <option value="lainnya">📦 Lainnya</option>
+        </select>
+      </div>
+      <div class="form-row">
+        <label>Catatan</label>
+        <textarea id="docNote" placeholder="Keterangan singkat tentang berkas ini..." style="min-height:60px;"></textarea>
+      </div>
+      <div class="form-row">
+        <label>Pilih File</label>
+        <div class="modal-drop-zone" onclick="document.getElementById('modalFileInput').click()">
+          <input type="file" id="modalFileInput" multiple style="display:none;" onchange="handleModalFileSelect(event)">
+          <span>📂 Klik untuk pilih file</span>
+        </div>
+        <div id="modalSelectedFiles" style="margin-top:8px;font-size:13px;color:var(--text-secondary);"></div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-outline" onclick="closeModal('docModal')">Batal</button>
+        <button class="btn btn-primary" onclick="saveDocuments()">💾 Simpan</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Planning Modal -->
+  <div class="modal-overlay" id="planningModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 class="modal-title">📋 Tambah Tugas</h2>
+        <button class="modal-close" onclick="closeModal('planningModal')">✕</button>
+      </div>
+      <div class="form-row">
+        <label>Judul Tugas</label>
+        <input type="text" id="taskTitle" placeholder="Apa yang perlu dilakukan?">
+      </div>
+      <div class="form-row">
+        <label>Deskripsi (opsional)</label>
+        <textarea id="taskDesc" placeholder="Rincian tugas..."></textarea>
+      </div>
+      <div class="form-row-2">
+        <div>
+          <label>Tanggal Deadline</label>
+          <input type="date" id="taskDue">
+        </div>
+        <div>
+          <label>Prioritas</label>
+          <select id="taskPriority">
+            <option value="high">🔴 Tinggi</option>
+            <option value="medium" selected>🟡 Sedang</option>
+            <option value="low">🟢 Rendah</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <label>Kategori</label>
+        <select id="taskCategory">
+          <option value="pekerjaan">💼 Pekerjaan</option>
+          <option value="personal">🏠 Personal</option>
+          <option value="kesehatan">💊 Kesehatan</option>
+          <option value="belajar">📚 Belajar</option>
+          <option value="keuangan">💰 Keuangan</option>
+          <option value="lainnya">📦 Lainnya</option>
+        </select>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-outline" onclick="closeModal('planningModal')">Batal</button>
+        <button class="btn btn-primary" onclick="saveTask()">💾 Simpan</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Achievement Modal -->
+  <div class="modal-overlay" id="achievementModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 class="modal-title">🏆 Tambah Pencapaian</h2>
+        <button class="modal-close" onclick="closeModal('achievementModal')">✕</button>
+      </div>
+      <div class="form-row">
+        <label>Pilih Emoji Icon</label>
+        <div class="emoji-preview" id="selectedEmojiPreview" onclick="toggleEmojiPicker()">🏆</div>
+        <div id="emojiPickerWrap" style="display:none;margin-top:8px;">
+          <div class="emoji-grid" id="emojiGrid"></div>
+        </div>
+        <input type="hidden" id="achievementEmoji" value="🏆">
+      </div>
+      <div class="form-row">
+        <label>Judul Pencapaian</label>
+        <input type="text" id="achievementTitle" placeholder="Apa yang berhasil kamu capai?">
+      </div>
+      <div class="form-row">
+        <label>Deskripsi</label>
+        <textarea id="achievementDesc" placeholder="Ceritakan pencapaianmu..."></textarea>
+      </div>
+      <div class="form-row-2">
+        <div>
+          <label>Tanggal Dicapai</label>
+          <input type="date" id="achievementDate">
+        </div>
+        <div>
+          <label>Kategori</label>
+          <select id="achievementCategory">
+            <option value="karir">💼 Karir</option>
+            <option value="pendidikan">🎓 Pendidikan</option>
+            <option value="personal">🌟 Personal</option>
+            <option value="kesehatan">💪 Kesehatan</option>
+            <option value="finansial">💰 Finansial</option>
+            <option value="sosial">👥 Sosial</option>
+            <option value="hobi">🎨 Hobi</option>
+            <option value="lainnya">✨ Lainnya</option>
+          </select>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-outline" onclick="closeModal('achievementModal')">Batal</button>
+        <button class="btn btn-primary" onclick="saveAchievement()">💾 Simpan</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Wish Modal -->
+  <div class="modal-overlay" id="wishModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 class="modal-title">✨ Tambah Keinginan</h2>
+        <button class="modal-close" onclick="closeModal('wishModal')">✕</button>
+      </div>
+      <div class="form-row">
+        <label>Judul Keinginan / Mimpi</label>
+        <input type="text" id="wishTitle" placeholder="Apa impianmu?">
+      </div>
+      <div class="form-row">
+        <label>Deskripsi (opsional)</label>
+        <textarea id="wishDesc" placeholder="Ceritakan lebih lanjut..."></textarea>
+      </div>
+      <div class="form-row-2">
+        <div>
+          <label>Prioritas</label>
+          <select id="wishPriority">
+            <option value="high">🔴 Tinggi</option>
+            <option value="medium" selected>🟡 Sedang</option>
+            <option value="low">🟢 Rendah</option>
+          </select>
+        </div>
+        <div>
+          <label>Target Tanggal (opsional)</label>
+          <input type="date" id="wishTarget">
+        </div>
+      </div>
+      <div class="form-row">
+        <label>Kategori</label>
+        <select id="wishCategory">
+          <option value="karir">💼 Karir</option>
+          <option value="keuangan">💰 Keuangan</option>
+          <option value="perjalanan">✈️ Perjalanan</option>
+          <option value="pendidikan">🎓 Pendidikan</option>
+          <option value="kesehatan">💪 Kesehatan</option>
+          <option value="keluarga">👨‍👩‍👧 Keluarga</option>
+          <option value="hobi">🎨 Hobi</option>
+          <option value="lainnya">✨ Lainnya</option>
+        </select>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-outline" onclick="closeModal('wishModal')">Batal</button>
+        <button class="btn btn-primary" onclick="saveWish()">💾 Simpan</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========== APP LAYOUT ========== -->
+  <div class="app-layout">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="app-logo">
+          <div class="logo-icon">🌟</div>
+          <div class="logo-text">
+            <h2>Dashboard Ku</h2>
+            <p>Ruang Pribadiku</p>
+          </div>
+        </div>
+      </div>
+      <nav class="sidebar-nav">
+        <div class="nav-section-label">Menu Utama</div>
+        <div class="nav-item active" data-section="keuangan" onclick="switchSection('keuangan')">
+          <span class="nav-icon">💰</span>
+          <span class="nav-label">Keuangan</span>
+          <span class="nav-badge" id="txBadge">0</span>
+        </div>
+        <div class="nav-item" data-section="planning" onclick="switchSection('planning')">
+          <span class="nav-icon">📋</span>
+          <span class="nav-label">Planning</span>
+          <span class="nav-badge" id="taskBadge">0</span>
+        </div>
+        <div class="nav-item" data-section="pencapaian" onclick="switchSection('pencapaian')">
+          <span class="nav-icon">🏆</span>
+          <span class="nav-label">Pencapaian</span>
+          <span class="nav-badge" id="achieveBadge">0</span>
+        </div>
+        <div class="nav-item" data-section="keinginan" onclick="switchSection('keinginan')">
+          <span class="nav-icon">✨</span>
+          <span class="nav-label">Keinginan</span>
+          <span class="nav-badge" id="wishBadge">0</span>
+        </div>
+
+        <div class="separator" style="margin: 16px 0;"></div>
+        <div class="nav-section-label">Ringkasan</div>
+        <div
+          style="padding: 12px 14px; border-radius: var(--radius-sm); background: rgba(99,102,241,0.06); border: 1px solid rgba(99,102,241,0.1); margin-top: 4px;">
+          <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 8px; font-weight: 600;">📊 Progress
+            Tugas</div>
+          <div class="progress-bar-wrap" style="height:6px;margin-bottom:6px;">
+            <div class="progress-bar-fill" id="sidebarTaskProgress" style="width:0%"></div>
+          </div>
+          <div style="font-size: 11px; color: var(--text-secondary);" id="sidebarTaskText">0 dari 0 selesai</div>
+        </div>
+      </nav>
+      <div class="sidebar-footer">
+        <button class="theme-toggle" onclick="toggleTheme()">
+          <span id="themeIcon">🌙</span>
+          <span id="themeLabel">Mode Gelap</span>
+          <div class="toggle-pill"></div>
+        </button>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+      <!-- TOP BAR -->
+      <div class="topbar">
+        <div style="display:flex;align-items:center;gap:0;">
+          <button class="mobile-menu-btn" onclick="toggleMobileSidebar()">☰</button>
+          <div class="topbar-left">
+            <h1 id="topbarTitle">💰 Keuangan</h1>
+            <p id="topbarSubtitle">Kelola keuangan harianmu</p>
+          </div>
+        </div>
+        <div class="topbar-right">
+          <span class="topbar-date" id="topbarDate"></span>
+        </div>
+      </div>
+
+      <!-- ======= SECTION: KEUANGAN ======= -->
+      <section class="page-section active" id="section-keuangan">
+        <div class="section-header">
+          <div>
+            <h2 class="section-title">💰 Keuangan</h2>
+            <p class="section-subtitle">Pantau pemasukan dan pengeluaranmu</p>
+          </div>
+          <button class="btn btn-primary" onclick="openModal('financeModal')">
+            ＋ Tambah Transaksi
+          </button>
+        </div>
+
+        <!-- Summary Stats -->
+        <div class="stat-cards finance-stats" id="financeStats">
+          <div class="stat-card">
+            <div class="stat-icon income">📈</div>
+            <div class="stat-info">
+              <div class="stat-label">Total Pemasukan</div>
+              <div class="stat-value income" id="totalIncome">Rp 0</div>
+              <div class="stat-sub" id="incomeCount">0 transaksi</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon expense">📉</div>
+            <div class="stat-info">
+              <div class="stat-label">Total Pengeluaran</div>
+              <div class="stat-value expense" id="totalExpense">Rp 0</div>
+              <div class="stat-sub" id="expenseCount">0 transaksi</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon balance">💎</div>
+            <div class="stat-info">
+              <div class="stat-label">Saldo Bersih</div>
+              <div class="stat-value balance" id="netBalance">Rp 0</div>
+              <div class="stat-sub" id="balanceStatus">Seimbang</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Chart -->
+        <div class="card mb-6">
+          <div
+            style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:12px;">
+            <div>
+              <div style="font-size:16px;font-weight:700;">📊 Grafik Bulanan</div>
+              <div style="font-size:13px;color:var(--text-muted);">Pemasukan vs Pengeluaran</div>
+            </div>
+            <div class="month-filter">
+              <span style="font-size:13px;color:var(--text-secondary);">Filter:</span>
+              <input type="month" id="chartMonthFilter" onchange="renderFinancePage()">
+            </div>
+          </div>
+          <div class="chart-container">
+            <canvas id="financeChart"></canvas>
+          </div>
+        </div>
+
+        <!-- Transaction List -->
+        <div class="card">
+          <div
+            style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px;">
+            <div style="font-size:16px;font-weight:700;">📄 Riwayat Transaksi</div>
+            <div style="display:flex;gap:8px;align-items:center;">
+              <select id="txFilterType" onchange="renderFinancePage()"
+                style="width:auto;padding:7px 12px;font-size:13px;border-radius:8px;">
+                <option value="all">Semua</option>
+                <option value="income">Pemasukan</option>
+                <option value="expense">Pengeluaran</option>
+              </select>
+            </div>
+          </div>
+          <div id="transactionList">
+            <div class="empty-state">
+              <span class="empty-emoji">💸</span>
+              <div class="empty-title">Belum ada transaksi</div>
+              <div class="empty-desc">Mulai catat pemasukan dan pengeluaranmu dengan menekan tombol di atas!</div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======= SECTION: PLANNING ======= -->
+      <section class="page-section" id="section-planning">
+        <div class="section-header">
+          <div>
+            <h2 class="section-title">📋 Planning</h2>
+            <p class="section-subtitle">Rencanakan, simpan, dan catat harianmu</p>
+          </div>
+          <div id="planningActionBtn">
+            <button class="btn btn-primary" onclick="openModal('planningModal')">＋ Tambah Tugas</button>
+          </div>
+        </div>
+
+        <!-- Sub-navigation tabs -->
+        <div class="planning-tabs">
+          <button class="planning-tab active" onclick="switchPlanningTab('tugas', this)">📋 Tugas</button>
+          <button class="planning-tab" onclick="switchPlanningTab('dokumen', this)">📁 Dokumen & Berkas</button>
+          <button class="planning-tab" onclick="switchPlanningTab('jurnal', this)">📓 Jurnal</button>
+        </div>
+
+        <!-- ---- TAB: TUGAS ---- -->
+        <div id="planTab-tugas" class="plan-tab-content">
+          <!-- Progress -->
+          <div class="progress-summary" id="taskProgressBar">
+            <div class="progress-summary-info">
+              <h3>Progress Keseluruhan</h3>
+              <div class="progress-bar-wrap light" style="margin-top:10px;">
+                <div class="progress-bar-fill light" id="mainProgressFill" style="width:0%"></div>
+              </div>
+              <p id="taskProgressText" style="margin-top:8px;">0 dari 0 tugas selesai</p>
+            </div>
+            <div class="progress-pct" id="taskProgressPct">0%</div>
+          </div>
+          <!-- Filters -->
+          <div class="filter-bar">
+            <button class="filter-btn active" onclick="setTaskFilter('all',this)">🗂 Semua</button>
+            <button class="filter-btn" onclick="setTaskFilter('active',this)">⏳ Aktif</button>
+            <button class="filter-btn" onclick="setTaskFilter('done',this)">✅ Selesai</button>
+            <button class="filter-btn" onclick="setTaskFilter('high',this)">🔴 Prioritas Tinggi</button>
+          </div>
+          <div id="taskList">
+            <div class="empty-state">
+              <span class="empty-emoji">📝</span>
+              <div class="empty-title">Belum ada tugas</div>
+              <div class="empty-desc">Tambahkan tugas pertamamu dan mulai produktif!</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ---- TAB: DOKUMEN ---- -->
+        <div id="planTab-dokumen" class="plan-tab-content" style="display:none;">
+          <div class="doc-toolbar">
+            <div class="filter-bar" style="margin:0;">
+              <button class="filter-btn active" onclick="setDocFilter('semua',this)">🗂 Semua</button>
+              <button class="filter-btn" onclick="setDocFilter('pekerjaan',this)">💼 Pekerjaan</button>
+              <button class="filter-btn" onclick="setDocFilter('pendidikan',this)">📚 Pendidikan</button>
+              <button class="filter-btn" onclick="setDocFilter('pribadi',this)">🏠 Pribadi</button>
+              <button class="filter-btn" onclick="setDocFilter('keuangan',this)">💰 Keuangan</button>
+              <button class="filter-btn" onclick="setDocFilter('lainnya',this)">📦 Lainnya</button>
+            </div>
+            <button class="btn btn-primary" onclick="openModal('docModal')">＋ Upload Berkas</button>
+          </div>
+          <!-- Drop zone -->
+          <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()" ondragover="onDragOver(event)" ondragleave="onDragLeave(event)" ondrop="onDrop(event)">
+            <input type="file" id="fileInput" multiple style="display:none;" onchange="handleFileSelect(event)">
+            <div class="drop-zone-icon">📂</div>
+            <div class="drop-zone-text">Klik atau seret file ke sini</div>
+            <div class="drop-zone-sub">PDF, Word, Excel, Gambar, dan lainnya (maks 50MB/file)</div>
+          </div>
+          <div id="docList" class="doc-grid"></div>
+        </div>
+
+        <!-- ---- TAB: JURNAL ---- -->
+        <div id="planTab-jurnal" class="plan-tab-content" style="display:none;">
+          <div class="journal-layout">
+            <!-- Sidebar jurnal -->
+            <div class="journal-sidebar">
+              <div class="journal-sidebar-header">
+                <span>📓 Entri Jurnal</span>
+                <button class="btn btn-primary btn-sm" onclick="newJournalEntry()">＋ Baru</button>
+              </div>
+              <div id="journalList"></div>
+            </div>
+            <!-- Editor jurnal -->
+            <div class="journal-editor" id="journalEditor">
+              <div class="journal-empty-state" id="journalEmptyState">
+                <span style="font-size:3rem;">📓</span>
+                <p>Pilih entri atau buat jurnal baru</p>
+                <button class="btn btn-primary" onclick="newJournalEntry()">＋ Buat Jurnal Baru</button>
+              </div>
+              <div id="journalForm" style="display:none; height:100%; display:none; flex-direction:column; gap:12px;">
+                <div class="journal-editor-header">
+                  <div style="flex:1;">
+                    <input type="text" id="journalTitle" placeholder="Judul jurnal..." style="font-size:1.2rem;font-weight:600;border:none;border-bottom:2px solid var(--border);border-radius:0;padding:6px 0;background:transparent;">
+                    <div style="display:flex;gap:10px;margin-top:8px;flex-wrap:wrap;">
+                      <input type="date" id="journalDate" style="width:auto;font-size:13px;">
+                      <select id="journalMood" style="width:auto;font-size:13px;">
+                        <option value="😊">😊 Bahagia</option>
+                        <option value="😐">😐 Biasa</option>
+                        <option value="😔">😔 Sedih</option>
+                        <option value="😤">😤 Frustrasi</option>
+                        <option value="🤩">🤩 Semangat</option>
+                        <option value="😴">😴 Lelah</option>
+                        <option value="🙏">🙏 Bersyukur</option>
+                      </select>
+                      <select id="journalCategory" style="width:auto;font-size:13px;">
+                        <option value="harian">📅 Harian</option>
+                        <option value="refleksi">🪞 Refleksi</option>
+                        <option value="ide">💡 Ide</option>
+                        <option value="mimpi">🌙 Mimpi</option>
+                        <option value="syukur">🙏 Rasa Syukur</option>
+                        <option value="target">🎯 Target</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div style="display:flex;gap:8px;flex-shrink:0;">
+                    <button class="btn btn-primary btn-sm" onclick="saveJournal()">💾 Simpan</button>
+                    <button class="btn btn-outline btn-sm" onclick="closeJournalForm()">✕</button>
+                  </div>
+                </div>
+                <textarea id="journalContent" placeholder="Tulis isi jurnalmu di sini... Bagaimana harimu? Apa yang kamu pikirkan? Apa rencanamu?" style="flex:1;min-height:300px;font-size:14px;line-height:1.7;resize:none;"></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======= SECTION: PENCAPAIAN ======= -->
+      <section class="page-section" id="section-pencapaian">
+        <div class="section-header">
+          <div>
+            <h2 class="section-title">🏆 Pencapaian</h2>
+            <p class="section-subtitle">Rayakan setiap keberhasilanmu</p>
+          </div>
+          <button class="btn btn-primary" onclick="openModal('achievementModal')">
+            ＋ Tambah Pencapaian
+          </button>
+        </div>
+
+        <!-- Category filters -->
+        <div class="filter-bar" id="achieveFilterBar">
+          <button class="filter-btn active" onclick="setAchieveFilter('all',this)">🌟 Semua</button>
+          <button class="filter-btn" onclick="setAchieveFilter('karir',this)">💼 Karir</button>
+          <button class="filter-btn" onclick="setAchieveFilter('pendidikan',this)">🎓 Pendidikan</button>
+          <button class="filter-btn" onclick="setAchieveFilter('personal',this)">🌟 Personal</button>
+          <button class="filter-btn" onclick="setAchieveFilter('kesehatan',this)">💪 Kesehatan</button>
+          <button class="filter-btn" onclick="setAchieveFilter('finansial',this)">💰 Finansial</button>
+          <button class="filter-btn" onclick="setAchieveFilter('hobi',this)">🎨 Hobi</button>
+        </div>
+
+        <div class="achievements-grid" id="achievementsList">
+          <div class="empty-state" style="grid-column:1/-1;">
+            <span class="empty-emoji">🌟</span>
+            <div class="empty-title">Belum ada pencapaian</div>
+            <div class="empty-desc">Catat setiap hal luar biasa yang sudah kamu capai!</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ======= SECTION: KEINGINAN ======= -->
+      <section class="page-section" id="section-keinginan">
+        <div class="section-header">
+          <div>
+            <h2 class="section-title">✨ Keinginan</h2>
+            <p class="section-subtitle">Wujudkan setiap impian dan harapanmu</p>
+          </div>
+          <button class="btn btn-primary" onclick="openModal('wishModal')">
+            ＋ Tambah Keinginan
+          </button>
+        </div>
+
+        <!-- Wish stats -->
+        <div class="stat-cards" style="grid-template-columns:repeat(3,1fr);margin-bottom:24px;" id="wishStats">
+          <div class="stat-card">
+            <div class="stat-icon" style="background:rgba(99,102,241,0.1);">💭</div>
+            <div class="stat-info">
+              <div class="stat-label">Impian</div>
+              <div class="stat-value" style="color:var(--primary);" id="wishCountImpian">0</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon" style="background:rgba(245,158,11,0.1);">🚀</div>
+            <div class="stat-info">
+              <div class="stat-label">Sedang Diusahakan</div>
+              <div class="stat-value" style="color:var(--warning);" id="wishCountProses">0</div>
+            </div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon" style="background:rgba(16,185,129,0.1);">🎉</div>
+            <div class="stat-info">
+              <div class="stat-label">Tercapai</div>
+              <div class="stat-value" style="color:var(--success);" id="wishCountTercapai">0</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Wish Columns -->
+        <div class="wish-columns" id="wishBoard">
+          <div class="wish-column wish-col-impian">
+            <div class="wish-column-header">
+              <span>💭</span> Impian
+              <span class="count" id="impianCount">0</span>
+            </div>
+            <div class="wish-items" id="wishList-impian"></div>
+          </div>
+          <div class="wish-column wish-col-proses">
+            <div class="wish-column-header">
+              <span>🚀</span> Sedang Diusahakan
+              <span class="count" id="prosesCount">0</span>
+            </div>
+            <div class="wish-items" id="wishList-proses"></div>
+          </div>
+          <div class="wish-column wish-col-tercapai">
+            <div class="wish-column-header">
+              <span>🎉</span> Tercapai
+              <span class="count" id="tercapaiCount">0</span>
+            </div>
+            <div class="wish-items" id="wishList-tercapai"></div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- BOTTOM NAV (Mobile) -->
+  <div class="bottom-nav">
+    <div class="bottom-nav-items">
+      <div class="bottom-nav-item active" data-section="keuangan" onclick="switchSection('keuangan')">
+        <span class="nav-icon">💰</span>
+        <span>Keuangan</span>
+      </div>
+      <div class="bottom-nav-item" data-section="planning" onclick="switchSection('planning')">
+        <span class="nav-icon">📋</span>
+        <span>Planning</span>
+      </div>
+      <div class="bottom-nav-item" data-section="pencapaian" onclick="switchSection('pencapaian')">
+        <span class="nav-icon">🏆</span>
+        <span>Pencapaian</span>
+      </div>
+      <div class="bottom-nav-item" data-section="keinginan" onclick="switchSection('keinginan')">
+        <span class="nav-icon">✨</span>
+        <span>Keinginan</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ===========================
+    // DATA LAYER
+    // ===========================
+    const DB = {
+      get: (key) => JSON.parse(localStorage.getItem(key) || '[]'),
+      set: (key, val) => localStorage.setItem(key, JSON.stringify(val)),
+      transactions: () => DB.get('transactions'),
+      tasks: () => DB.get('tasks'),
+      achievements: () => DB.get('achievements'),
+      wishes: () => DB.get('wishes'),
+    };
+
+    // ===========================
+    // UTILITIES
+    // ===========================
+    function uid() {
+      return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+    }
+
+    function formatCurrency(n) {
+      if (n === undefined || n === null || isNaN(n)) return 'Rp 0';
+      return 'Rp ' + Number(n).toLocaleString('id-ID');
+    }
+
+    function formatDate(dateStr) {
+      if (!dateStr) return '-';
+      const d = new Date(dateStr + 'T00:00:00');
+      return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+    }
+
+    function today() {
+      return new Date().toISOString().split('T')[0];
+    }
+
+    function isOverdue(dateStr) {
+      if (!dateStr) return false;
+      return new Date(dateStr + 'T23:59:59') < new Date();
+    }
+
+    function getCurrentMonth() {
+      const now = new Date();
+      return now.toISOString().slice(0, 7);
+    }
+
+    function showToast(msg, type = 'success') {
+      const icons = { success: '✅', error: '❌', info: 'ℹ️', warning: '⚠️' };
+      const c = document.getElementById('toastContainer');
+      const t = document.createElement('div');
+      t.className = `toast ${type}`;
+      t.innerHTML = `<span class="toast-icon">${icons[type] || 'ℹ️'}</span><span>${msg}</span>`;
+      c.appendChild(t);
+      setTimeout(() => { t.classList.add('hiding'); setTimeout(() => t.remove(), 300); }, 3000);
+    }
+
+    let confirmCallback = null;
+    function showConfirm(title, msg, cb, icon = '🗑️') {
+      document.getElementById('confirmIcon').textContent = icon;
+      document.getElementById('confirmTitle').textContent = title;
+      document.getElementById('confirmMsg').textContent = msg;
+      confirmCallback = cb;
+      document.getElementById('confirmOverlay').classList.add('open');
+      document.getElementById('confirmOkBtn').onclick = () => { closeConfirm(); if (confirmCallback) confirmCallback(); };
+    }
+    function closeConfirm() {
+      document.getElementById('confirmOverlay').classList.remove('open');
+      confirmCallback = null;
+    }
+
+    // ===========================
+    // NAVIGATION
+    // ===========================
+    const sectionMeta = {
+      keuangan: { title: '💰 Keuangan', sub: 'Kelola keuangan harianmu' },
+      planning: { title: '📋 Planning', sub: 'Rencanakan dan selesaikan tugasmu' },
+      pencapaian: { title: '🏆 Pencapaian', sub: 'Rayakan setiap keberhasilanmu' },
+      keinginan: { title: '✨ Keinginan', sub: 'Wujudkan setiap impian dan harapanmu' },
+    };
+
+    let currentSection = 'keuangan';
+    let taskFilter = 'all';
+    let achieveFilter = 'all';
+
+    function switchSection(id) {
+      currentSection = id;
+      document.querySelectorAll('.page-section').forEach(s => s.classList.remove('active'));
+      document.getElementById('section-' + id).classList.add('active');
+
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.dataset.section === id));
+      document.querySelectorAll('.bottom-nav-item').forEach(n => n.classList.toggle('active', n.dataset.section === id));
+
+      const meta = sectionMeta[id];
+      document.getElementById('topbarTitle').textContent = meta.title;
+      document.getElementById('topbarSubtitle').textContent = meta.sub;
+
+      closeMobileSidebar();
+
+      if (id === 'keuangan') renderFinancePage();
+      if (id === 'planning') renderPlanningPage();
+      if (id === 'pencapaian') renderAchievementsPage();
+      if (id === 'keinginan') renderWishesPage();
+    }
+
+    function toggleMobileSidebar() {
+      document.getElementById('sidebar').classList.toggle('mobile-open');
+      document.getElementById('sidebarOverlay').classList.toggle('open');
+    }
+    function closeMobileSidebar() {
+      document.getElementById('sidebar').classList.remove('mobile-open');
+      document.getElementById('sidebarOverlay').classList.remove('open');
+    }
+
+    // ===========================
+    // MODALS
+    // ===========================
+    function openModal(id) {
+      document.getElementById(id).classList.add('open');
+      if (id === 'financeModal') {
+        document.getElementById('txDate').value = today();
+        updateTxTypeStyle();
+      }
+      if (id === 'planningModal') {
+        document.getElementById('taskDue').value = '';
+      }
+      if (id === 'achievementModal') {
+        document.getElementById('achievementDate').value = today();
+        document.getElementById('achievementEmoji').value = '🏆';
+        document.getElementById('selectedEmojiPreview').textContent = '🏆';
+        document.getElementById('emojiPickerWrap').style.display = 'none';
+      }
+      if (id === 'wishModal') {
+        document.getElementById('wishTarget').value = '';
+      }
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.remove('open');
+      // Clear forms
+      const modal = document.getElementById(id);
+      modal.querySelectorAll('input:not([type=radio]):not([type=hidden]), textarea').forEach(el => {
+        if (el.id !== 'txDate' && el.id !== 'achievementDate') el.value = '';
+      });
+      modal.querySelectorAll('select').forEach(el => el.selectedIndex = 0);
+      if (id === 'achievementModal') {
+        document.getElementById('emojiPickerWrap').style.display = 'none';
+      }
+    }
+
+    // Close modal on overlay click
+    document.querySelectorAll('.modal-overlay').forEach(ov => {
+      ov.addEventListener('click', e => { if (e.target === ov) closeModal(ov.id); });
+    });
+
+    // ===========================
+    // FINANCE
+    // ===========================
+    function updateTxTypeStyle() {
+      const isIncome = document.getElementById('typeIncome').checked;
+      const catEl = document.getElementById('txCategory');
+      document.getElementById('typeIncomeLabel').style.borderColor = isIncome ? 'var(--success)' : 'var(--border)';
+      document.getElementById('typeIncomeLabel').style.background = isIncome ? 'rgba(16,185,129,0.08)' : '';
+      document.getElementById('typeExpenseLabel').style.borderColor = !isIncome ? 'var(--danger)' : 'var(--border)';
+      document.getElementById('typeExpenseLabel').style.background = !isIncome ? 'rgba(239,68,68,0.08)' : '';
+
+      // Update category options
+      if (isIncome) {
+        catEl.innerHTML = `
+      <option value="gaji">💼 Gaji</option>
+      <option value="bisnis">🏢 Bisnis</option>
+      <option value="investasi">📈 Investasi</option>
+      <option value="freelance">💻 Freelance</option>
+      <option value="hadiah">🎁 Hadiah</option>
+      <option value="lainnya">📦 Lainnya</option>`;
+      } else {
+        catEl.innerHTML = `
+      <option value="makanan">🍜 Makanan</option>
+      <option value="transport">🚗 Transport</option>
+      <option value="hiburan">🎮 Hiburan</option>
+      <option value="kesehatan">💊 Kesehatan</option>
+      <option value="pendidikan">📚 Pendidikan</option>
+      <option value="belanja">🛍️ Belanja</option>
+      <option value="tagihan">🏠 Tagihan</option>
+      <option value="lainnya">📦 Lainnya</option>`;
+      }
+    }
+
+    function saveTransaction() {
+      const type = document.querySelector('input[name="txType"]:checked').value;
+      const amount = parseFloat(document.getElementById('txAmount').value);
+      const date = document.getElementById('txDate').value;
+      const cat = document.getElementById('txCategory').value;
+      const desc = document.getElementById('txDesc').value.trim();
+
+      if (!amount || amount <= 0) { showToast('Masukkan jumlah yang valid!', 'error'); return; }
+      if (!date) { showToast('Pilih tanggal transaksi!', 'error'); return; }
+      if (!desc) { showToast('Isi deskripsi transaksi!', 'error'); return; }
+
+      const txs = DB.transactions();
+      txs.unshift({ id: uid(), type, amount, date, category: cat, desc, createdAt: new Date().toISOString() });
+      DB.set('transactions', txs);
+      closeModal('financeModal');
+      renderFinancePage();
+      updateBadges();
+      showToast(type === 'income' ? 'Pemasukan berhasil dicatat! 📈' : 'Pengeluaran berhasil dicatat! 📉');
+    }
+
+    function deleteTransaction(id) {
+      showConfirm('Hapus Transaksi?', 'Transaksi ini akan dihapus secara permanen.', () => {
+        const txs = DB.transactions().filter(t => t.id !== id);
+        DB.set('transactions', txs);
+        renderFinancePage();
+        updateBadges();
+        showToast('Transaksi dihapus.', 'info');
+      });
+    }
+
+    const catEmoji = {
+      gaji: '💼', bisnis: '🏢', investasi: '📈', freelance: '💻', hadiah: '🎁',
+      makanan: '🍜', transport: '🚗', hiburan: '🎮', kesehatan: '💊', pendidikan: '📚',
+      belanja: '🛍️', tagihan: '🏠', lainnya: '📦'
+    };
+    const catLabel = {
+      gaji: 'Gaji', bisnis: 'Bisnis', investasi: 'Investasi', freelance: 'Freelance', hadiah: 'Hadiah',
+      makanan: 'Makanan', transport: 'Transport', hiburan: 'Hiburan', kesehatan: 'Kesehatan',
+      pendidikan: 'Pendidikan', belanja: 'Belanja', tagihan: 'Tagihan', lainnya: 'Lainnya'
+    };
+
+    function renderFinancePage() {
+      let txs = DB.transactions();
+      const monthFilter = document.getElementById('chartMonthFilter')?.value || getCurrentMonth();
+      const typeFilter = document.getElementById('txFilterType')?.value || 'all';
+
+      // Filter for display
+      let displayTxs = txs;
+      if (monthFilter) displayTxs = displayTxs.filter(t => t.date && t.date.startsWith(monthFilter));
+      if (typeFilter !== 'all') displayTxs = displayTxs.filter(t => t.type === typeFilter);
+
+      // Stats (all time)
+      const income = txs.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
+      const expense = txs.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
+      const balance = income - expense;
+
+      document.getElementById('totalIncome').textContent = formatCurrency(income);
+      document.getElementById('totalExpense').textContent = formatCurrency(expense);
+      document.getElementById('netBalance').textContent = formatCurrency(balance);
+      document.getElementById('incomeCount').textContent = txs.filter(t => t.type === 'income').length + ' transaksi';
+      document.getElementById('expenseCount').textContent = txs.filter(t => t.type === 'expense').length + ' transaksi';
+      document.getElementById('balanceStatus').textContent = balance > 0 ? '🟢 Surplus' : balance < 0 ? '🔴 Defisit' : '⚪ Seimbang';
+      document.getElementById('netBalance').style.color = balance >= 0 ? 'var(--success)' : 'var(--danger)';
+
+      // Render transaction list
+      const list = document.getElementById('transactionList');
+      if (displayTxs.length === 0) {
+        list.innerHTML = `<div class="empty-state"><span class="empty-emoji">💸</span><div class="empty-title">Tidak ada transaksi</div><div class="empty-desc">Belum ada transaksi yang cocok dengan filter ini.</div></div>`;
+      } else {
+        list.innerHTML = displayTxs.map(t => `
+      <div class="transaction-item">
+        <div class="tx-icon ${t.type}">${catEmoji[t.category] || '📦'}</div>
+        <div class="tx-info">
+          <div class="tx-desc">${escHtml(t.desc)}</div>
+          <div class="tx-meta">
+            <span class="badge cat-${t.category}" style="font-size:11px;">${catLabel[t.category] || t.category}</span>
+            <span class="tx-date">📅 ${formatDate(t.date)}</span>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span class="tx-amount ${t.type}">${t.type === 'income' ? '+' : '-'} ${formatCurrency(t.amount)}</span>
+          <div class="tx-actions">
+            <button class="btn btn-icon btn-sm" onclick="deleteTransaction('${t.id}')" title="Hapus">🗑️</button>
+          </div>
+        </div>
+      </div>`).join('');
+      }
+
+      // Draw chart
+      drawFinanceChart(monthFilter);
+    }
+
+    function drawFinanceChart(monthFilter) {
+      const canvas = document.getElementById('financeChart');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const txs = DB.transactions();
+
+      // Build last 6 months data
+      const months = [];
+      const baseDate = monthFilter ? new Date(monthFilter + '-01') : new Date();
+      for (let i = 5; i >= 0; i--) {
+        const d = new Date(baseDate.getFullYear(), baseDate.getMonth() - i, 1);
+        const key = d.toISOString().slice(0, 7);
+        const label = d.toLocaleDateString('id-ID', { month: 'short', year: '2-digit' });
+        const inc = txs.filter(t => t.type === 'income' && t.date && t.date.startsWith(key)).reduce((s, t) => s + t.amount, 0);
+        const exp = txs.filter(t => t.type === 'expense' && t.date && t.date.startsWith(key)).reduce((s, t) => s + t.amount, 0);
+        months.push({ label, inc, exp });
+      }
+
+      const dpr = window.devicePixelRatio || 1;
+      const W = canvas.clientWidth || 600;
+      const H = 220;
+      canvas.width = W * dpr;
+      canvas.height = H * dpr;
+      canvas.style.width = W + 'px';
+      canvas.style.height = H + 'px';
+      ctx.scale(dpr, dpr);
+      ctx.clearRect(0, 0, W, H);
+
+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      const textColor = isDark ? '#a8a3c8' : '#6b7280';
+      const gridColor = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.04)';
+
+      const pad = { top: 20, right: 20, bottom: 44, left: 60 };
+      const chartW = W - pad.left - pad.right;
+      const chartH = H - pad.top - pad.bottom;
+
+      const maxVal = Math.max(...months.map(m => Math.max(m.inc, m.exp)), 1);
+      const nLines = 4;
+      ctx.font = '11px -apple-system,sans-serif';
+      ctx.fillStyle = textColor;
+      ctx.textAlign = 'right';
+
+      for (let i = 0; i <= nLines; i++) {
+        const y = pad.top + chartH - (i / nLines) * chartH;
+        const val = (maxVal * i / nLines);
+        ctx.strokeStyle = gridColor;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(pad.left, y);
+        ctx.lineTo(pad.left + chartW, y);
+        ctx.stroke();
+        ctx.fillStyle = textColor;
+        ctx.fillText(val >= 1e6 ? (val / 1e6).toFixed(1) + 'jt' : val >= 1e3 ? (val / 1e3).toFixed(0) + 'rb' : val.toFixed(0), pad.left - 6, y + 4);
+      }
+
+      const barW = Math.min(32, (chartW / months.length) * 0.35);
+      const gap = 4;
+
+      months.forEach((m, i) => {
+        const slotW = chartW / months.length;
+        const cx = pad.left + slotW * i + slotW / 2;
+
+        // Income bar
+        const incH = m.inc > 0 ? (m.inc / maxVal) * chartH : 2;
+        const incY = pad.top + chartH - incH;
+        const incGrad = ctx.createLinearGradient(0, incY, 0, pad.top + chartH);
+        incGrad.addColorStop(0, 'rgba(16,185,129,0.9)');
+        incGrad.addColorStop(1, 'rgba(16,185,129,0.3)');
+        ctx.fillStyle = incGrad;
+        ctx.beginPath();
+        ctx.roundRect(cx - barW - gap / 2, incY, barW, incH, [4, 4, 0, 0]);
+        ctx.fill();
+
+        // Expense bar
+        const expH = m.exp > 0 ? (m.exp / maxVal) * chartH : 2;
+        const expY = pad.top + chartH - expH;
+        const expGrad = ctx.createLinearGradient(0, expY, 0, pad.top + chartH);
+        expGrad.addColorStop(0, 'rgba(239,68,68,0.9)');
+        expGrad.addColorStop(1, 'rgba(239,68,68,0.3)');
+        ctx.fillStyle = expGrad;
+        ctx.beginPath();
+        ctx.roundRect(cx + gap / 2, expY, barW, expH, [4, 4, 0, 0]);
+        ctx.fill();
+
+        // Label
+        ctx.fillStyle = textColor;
+        ctx.textAlign = 'center';
+        ctx.font = '10px -apple-system,sans-serif';
+        ctx.fillText(m.label, cx, H - pad.bottom + 16);
+      });
+
+      // Legend
+      const lx = W - pad.right - 160;
+      const ly = 10;
+      ctx.fillStyle = 'rgba(16,185,129,0.85)'; ctx.fillRect(lx, ly, 12, 12);
+      ctx.fillStyle = textColor; ctx.textAlign = 'left'; ctx.font = '11px -apple-system,sans-serif';
+      ctx.fillText('Pemasukan', lx + 16, ly + 10);
+      ctx.fillStyle = 'rgba(239,68,68,0.85)'; ctx.fillRect(lx + 90, ly, 12, 12);
+      ctx.fillStyle = textColor;
+      ctx.fillText('Pengeluaran', lx + 106, ly + 10);
+    }
+
+    // ===========================
+    // PLANNING
+    // ===========================
+    function saveTask() {
+      const title = document.getElementById('taskTitle').value.trim();
+      const desc = document.getElementById('taskDesc').value.trim();
+      const due = document.getElementById('taskDue').value;
+      const priority = document.getElementById('taskPriority').value;
+      const category = document.getElementById('taskCategory').value;
+
+      if (!title) { showToast('Isi judul tugas!', 'error'); return; }
+
+      const tasks = DB.tasks();
+      tasks.unshift({ id: uid(), title, desc, due, priority, category, done: false, createdAt: new Date().toISOString() });
+      DB.set('tasks', tasks);
+      closeModal('planningModal');
+      renderPlanningPage();
+      updateBadges();
+      showToast('Tugas berhasil ditambahkan! 📋');
+    }
+
+    function toggleTask(id) {
+      const tasks = DB.tasks();
+      const t = tasks.find(t => t.id === id);
+      if (t) { t.done = !t.done; t.doneAt = t.done ? new Date().toISOString() : null; }
+      DB.set('tasks', tasks);
+      renderPlanningPage();
+      updateBadges();
+      if (t && t.done) showToast('Tugas selesai! 🎉', 'success');
+    }
+
+    function deleteTask(id) {
+      showConfirm('Hapus Tugas?', 'Tugas ini akan dihapus secara permanen.', () => {
+        DB.set('tasks', DB.tasks().filter(t => t.id !== id));
+        renderPlanningPage();
+        updateBadges();
+        showToast('Tugas dihapus.', 'info');
+      });
+    }
+
+    function setTaskFilter(f, el) {
+      taskFilter = f;
+      document.querySelectorAll('#section-planning .filter-btn').forEach(b => b.classList.remove('active'));
+      el.classList.add('active');
+      renderPlanningPage();
+    }
+
+    const priorityLabel = { high: '🔴 Tinggi', medium: '🟡 Sedang', low: '🟢 Rendah' };
+    const catTaskLabel = { pekerjaan: '💼 Pekerjaan', personal: '🏠 Personal', kesehatan: '💊 Kesehatan', belajar: '📚 Belajar', keuangan: '💰 Keuangan', lainnya: '📦 Lainnya' };
+
+    function renderPlanningPage() {
+      let tasks = DB.tasks();
+      const total = tasks.length;
+      const done = tasks.filter(t => t.done).length;
+      const pct = total === 0 ? 0 : Math.round((done / total) * 100);
+
+      document.getElementById('mainProgressFill').style.width = pct + '%';
+      document.getElementById('taskProgressPct').textContent = pct + '%';
+      document.getElementById('taskProgressText').textContent = `${done} dari ${total} tugas selesai`;
+      document.getElementById('sidebarTaskProgress').style.width = pct + '%';
+      document.getElementById('sidebarTaskText').textContent = `${done} dari ${total} selesai`;
+
+      // Apply filter
+      if (taskFilter === 'active') tasks = tasks.filter(t => !t.done);
+      else if (taskFilter === 'done') tasks = tasks.filter(t => t.done);
+      else if (taskFilter === 'high') tasks = tasks.filter(t => t.priority === 'high');
+
+      const list = document.getElementById('taskList');
+      if (tasks.length === 0) {
+        list.innerHTML = `<div class="empty-state"><span class="empty-emoji">📝</span><div class="empty-title">Tidak ada tugas</div><div class="empty-desc">Tidak ada tugas yang sesuai filter.</div></div>`;
+        return;
+      }
+
+      // Sort: active first, then by priority, then by due date
+      tasks.sort((a, b) => {
+        if (a.done !== b.done) return a.done ? 1 : -1;
+        const pOrder = { high: 0, medium: 1, low: 2 };
+        if (pOrder[a.priority] !== pOrder[b.priority]) return pOrder[a.priority] - pOrder[b.priority];
+        if (a.due && b.due) return a.due.localeCompare(b.due);
+        return 0;
+      });
+
+      list.innerHTML = tasks.map(t => `
+    <div class="task-item ${t.done ? 'done' : ''}">
+      <div class="priority-dot priority-${t.priority}" style="margin-top:9px;flex-shrink:0;"></div>
+      <div class="task-check" onclick="toggleTask('${t.id}')">${t.done ? '✓' : ''}</div>
+      <div class="task-body">
+        <div class="task-title">${escHtml(t.title)}</div>
+        ${t.desc ? `<div class="task-desc">${escHtml(t.desc)}</div>` : ''}
+        <div class="task-meta">
+          <span class="badge" style="background:rgba(99,102,241,0.1);color:var(--primary);font-size:11px;">${catTaskLabel[t.category] || t.category}</span>
+          <span class="badge" style="background:${t.priority === 'high' ? 'rgba(239,68,68,0.1)' : t.priority === 'medium' ? 'rgba(245,158,11,0.1)' : 'rgba(16,185,129,0.1)'};color:${t.priority === 'high' ? 'var(--danger)' : t.priority === 'medium' ? 'var(--warning)' : 'var(--success)'};font-size:11px;">${priorityLabel[t.priority]}</span>
+          ${t.due ? `<span class="task-due ${!t.done && isOverdue(t.due) ? 'overdue' : ''}">📅 ${formatDate(t.due)}${!t.done && isOverdue(t.due) ? ' (Terlambat!)' : ''}</span>` : ''}
+        </div>
+      </div>
+      <div class="task-actions">
+        <button class="btn btn-icon btn-sm" onclick="deleteTask('${t.id}')" title="Hapus">🗑️</button>
+      </div>
+    </div>`).join('');
+    }
+
+    // ===========================
+    // ACHIEVEMENTS
+    // ===========================
+    const achieveCatLabel = { karir: '💼 Karir', pendidikan: '🎓 Pendidikan', personal: '🌟 Personal', kesehatan: '💪 Kesehatan', finansial: '💰 Finansial', sosial: '👥 Sosial', hobi: '🎨 Hobi', lainnya: '✨ Lainnya' };
+
+    function saveAchievement() {
+      const emoji = document.getElementById('achievementEmoji').value;
+      const title = document.getElementById('achievementTitle').value.trim();
+      const desc = document.getElementById('achievementDesc').value.trim();
+      const date = document.getElementById('achievementDate').value;
+      const category = document.getElementById('achievementCategory').value;
+
+      if (!title) { showToast('Isi judul pencapaian!', 'error'); return; }
+      if (!date) { showToast('Pilih tanggal pencapaian!', 'error'); return; }
+
+      const achievements = DB.achievements();
+      achievements.unshift({ id: uid(), emoji, title, desc, date, category, createdAt: new Date().toISOString() });
+      DB.set('achievements', achievements);
+      closeModal('achievementModal');
+      renderAchievementsPage();
+      updateBadges();
+      showToast('Pencapaian berhasil ditambahkan! 🏆');
+    }
+
+    function deleteAchievement(id) {
+      showConfirm('Hapus Pencapaian?', 'Pencapaian ini akan dihapus secara permanen.', () => {
+        DB.set('achievements', DB.achievements().filter(a => a.id !== id));
+        renderAchievementsPage();
+        updateBadges();
+        showToast('Pencapaian dihapus.', 'info');
+      }, '🏆');
+    }
+
+    function setAchieveFilter(f, el) {
+      achieveFilter = f;
+      document.querySelectorAll('#achieveFilterBar .filter-btn').forEach(b => b.classList.remove('active'));
+      el.classList.add('active');
+      renderAchievementsPage();
+    }
+
+    function renderAchievementsPage() {
+      let achievements = DB.achievements();
+      if (achieveFilter !== 'all') achievements = achievements.filter(a => a.category === achieveFilter);
+
+      achievements.sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+
+      const list = document.getElementById('achievementsList');
+      if (achievements.length === 0) {
+        list.innerHTML = `<div class="empty-state" style="grid-column:1/-1;"><span class="empty-emoji">🌟</span><div class="empty-title">Belum ada pencapaian</div><div class="empty-desc">Catat setiap hal luar biasa yang sudah kamu capai!</div></div>`;
+        return;
+      }
+
+      list.innerHTML = achievements.map(a => `
+    <div class="achievement-card">
+      <span class="achievement-emoji">${a.emoji || '🏆'}</span>
+      <div class="achievement-title">${escHtml(a.title)}</div>
+      ${a.desc ? `<div class="achievement-desc">${escHtml(a.desc)}</div>` : ''}
+      <div class="achievement-footer">
+        <div>
+          <span class="badge" style="background:rgba(245,158,11,0.12);color:var(--accent-gold);margin-bottom:6px;display:inline-flex;">${achieveCatLabel[a.category] || a.category}</span>
+          <div class="achievement-date">📅 ${formatDate(a.date)}</div>
+        </div>
+        <div class="achievement-actions">
+          <button class="btn btn-icon btn-sm" onclick="deleteAchievement('${a.id}')" title="Hapus">🗑️</button>
+        </div>
+      </div>
+    </div>`).join('');
+    }
+
+    // ===========================
+    // EMOJI PICKER
+    // ===========================
+    const EMOJIS = ['🏆', '🥇', '🎯', '🌟', '⭐', '💫', '✨', '🎉', '🎊', '🥳', '🏅', '🎖️', '🏵️', '🎗️', '🌈', '🚀', '💪', '🧠', '❤️', '🔥', '⚡', '💎', '👑', '🌸', '🌺', '🍀', '🦁', '🦋', '🌙', '☀️', '🌊', '🏔️', '🎵', '🎸', '📚', '💻', '🎨', '✈️', '🚂', '⚽', '🏀', '🎾', '🏊', '🧘', '🌿', '🦅', '🐉', '🦄', '🌍', '🛡️', '⚔️', '🗝️', '💡', '🔮', '🧩', '📱', '💰', '🤝', '👏', '🙌', '🎓', '📜', '🏠', '🚗', '🍕', '☕', '🎂'];
+
+    function buildEmojiGrid() {
+      const grid = document.getElementById('emojiGrid');
+      if (!grid) return;
+      grid.innerHTML = EMOJIS.map(e => `<span class="emoji-opt" onclick="selectEmoji('${e}')">${e}</span>`).join('');
+    }
+
+    function toggleEmojiPicker() {
+      const wrap = document.getElementById('emojiPickerWrap');
+      wrap.style.display = wrap.style.display === 'none' ? 'block' : 'none';
+      if (wrap.style.display === 'block') buildEmojiGrid();
+    }
+
+    function selectEmoji(e) {
+      document.getElementById('achievementEmoji').value = e;
+      document.getElementById('selectedEmojiPreview').textContent = e;
+      document.getElementById('emojiGrid').querySelectorAll('.emoji-opt').forEach(el => {
+        el.classList.toggle('selected', el.textContent === e);
+      });
+    }
+
+    // ===========================
+    // WISHES
+    // ===========================
+    const wishCatLabel = { karir: '💼 Karir', keuangan: '💰 Keuangan', perjalanan: '✈️ Perjalanan', pendidikan: '🎓 Pendidikan', kesehatan: '💪 Kesehatan', keluarga: '👨‍👩‍👧 Keluarga', hobi: '🎨 Hobi', lainnya: '✨ Lainnya' };
+    const wishStatuses = ['impian', 'proses', 'tercapai'];
+    const wishStatusLabel = { impian: '💭 Impian', proses: '🚀 Sedang Diusahakan', tercapai: '🎉 Tercapai' };
+
+    function saveWish() {
+      const title = document.getElementById('wishTitle').value.trim();
+      const desc = document.getElementById('wishDesc').value.trim();
+      const priority = document.getElementById('wishPriority').value;
+      const target = document.getElementById('wishTarget').value;
+      const category = document.getElementById('wishCategory').value;
+
+      if (!title) { showToast('Isi judul keinginan!', 'error'); return; }
+
+      const wishes = DB.wishes();
+      wishes.unshift({ id: uid(), title, desc, priority, target, category, status: 'impian', createdAt: new Date().toISOString() });
+      DB.set('wishes', wishes);
+      closeModal('wishModal');
+      renderWishesPage();
+      updateBadges();
+      showToast('Keinginan berhasil ditambahkan! ✨');
+    }
+
+    function moveWish(id, dir) {
+      const wishes = DB.wishes();
+      const w = wishes.find(w => w.id === id);
+      if (!w) return;
+      const idx = wishStatuses.indexOf(w.status);
+      const newIdx = idx + dir;
+      if (newIdx < 0 || newIdx >= wishStatuses.length) return;
+      w.status = wishStatuses[newIdx];
+      if (w.status === 'tercapai') w.achievedAt = new Date().toISOString();
+      DB.set('wishes', wishes);
+      renderWishesPage();
+      if (w.status === 'tercapai') showToast('Selamat! Keinginan tercapai! 🎉', 'success');
+      else showToast('Status diperbarui!', 'info');
+    }
+
+    function deleteWish(id) {
+      showConfirm('Hapus Keinginan?', 'Keinginan ini akan dihapus secara permanen.', () => {
+        DB.set('wishes', DB.wishes().filter(w => w.id !== id));
+        renderWishesPage();
+        updateBadges();
+        showToast('Keinginan dihapus.', 'info');
+      }, '✨');
+    }
+
+    function renderWishesPage() {
+      const wishes = DB.wishes();
+      const counts = { impian: 0, proses: 0, tercapai: 0 };
+      wishes.forEach(w => { if (counts[w.status] !== undefined) counts[w.status]++; });
+
+      document.getElementById('wishCountImpian').textContent = counts.impian;
+      document.getElementById('wishCountProses').textContent = counts.proses;
+      document.getElementById('wishCountTercapai').textContent = counts.tercapai;
+      document.getElementById('impianCount').textContent = counts.impian;
+      document.getElementById('prosesCount').textContent = counts.proses;
+      document.getElementById('tercapaiCount').textContent = counts.tercapai;
+
+      wishStatuses.forEach(status => {
+        const col = document.getElementById('wishList-' + status);
+        const items = wishes.filter(w => w.status === status);
+        if (items.length === 0) {
+          col.innerHTML = `<div style="text-align:center;padding:24px 12px;color:var(--text-muted);font-size:13px;">Belum ada item</div>`;
+          return;
+        }
+        col.innerHTML = items.map(w => {
+          const idx = wishStatuses.indexOf(w.status);
+          return `<div class="wish-card">
+        <div class="wish-title">${escHtml(w.title)}</div>
+        ${w.desc ? `<div class="wish-desc">${escHtml(w.desc)}</div>` : ''}
+        <div class="wish-meta">
+          <span class="badge" style="background:rgba(99,102,241,0.08);color:var(--primary);font-size:10px;">${wishCatLabel[w.category] || w.category}</span>
+          <span class="badge" style="background:${w.priority === 'high' ? 'rgba(239,68,68,0.08)' : w.priority === 'medium' ? 'rgba(245,158,11,0.08)' : 'rgba(16,185,129,0.08)'};color:${w.priority === 'high' ? 'var(--danger)' : w.priority === 'medium' ? 'var(--warning)' : 'var(--success)'};font-size:10px;">${priorityLabel[w.priority]}</span>
+          ${w.target ? `<span style="font-size:10px;color:var(--text-muted);">🎯 ${formatDate(w.target)}</span>` : ''}
+        </div>
+        <div class="wish-actions">
+          ${idx > 0 ? `<button class="wish-move-btn" onclick="moveWish('${w.id}',-1)">← Mundur</button>` : ''}
+          ${idx < 2 ? `<button class="wish-move-btn" onclick="moveWish('${w.id}',1)" style="border-color:var(--primary);color:var(--primary);">Maju →</button>` : ''}
+          <button class="btn btn-icon btn-sm" onclick="deleteWish('${w.id}')" style="width:28px;height:28px;font-size:13px;" title="Hapus">🗑️</button>
+        </div>
+      </div>`;
+        }).join('');
+      });
+    }
+
+    // ===========================
+    // BADGES / UPDATE
+    // ===========================
+    function updateBadges() {
+      const txs = DB.transactions();
+      const tasks = DB.tasks();
+      const achievements = DB.achievements();
+      const wishes = DB.wishes();
+
+      document.getElementById('txBadge').textContent = txs.length;
+      document.getElementById('taskBadge').textContent = tasks.filter(t => !t.done).length;
+      document.getElementById('achieveBadge').textContent = achievements.length;
+      document.getElementById('wishBadge').textContent = wishes.length;
+
+      // Sidebar progress
+      const total = tasks.length;
+      const done = tasks.filter(t => t.done).length;
+      const pct = total === 0 ? 0 : Math.round((done / total) * 100);
+      document.getElementById('sidebarTaskProgress').style.width = pct + '%';
+      document.getElementById('sidebarTaskText').textContent = `${done} dari ${total} selesai`;
+    }
+
+    // ===========================
+    // THEME
+    // ===========================
+    function toggleTheme() {
+      const html = document.documentElement;
+      const isDark = html.getAttribute('data-theme') === 'dark';
+      html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+      localStorage.setItem('theme', isDark ? 'light' : 'dark');
+      updateThemeUI();
+      if (currentSection === 'keuangan') setTimeout(renderFinancePage, 100);
+    }
+
+    function updateThemeUI() {
+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      document.getElementById('themeIcon').textContent = isDark ? '☀️' : '🌙';
+      document.getElementById('themeLabel').textContent = isDark ? 'Mode Terang' : 'Mode Gelap';
+    }
+
+    // ===========================
+    // DATE / TIME
+    // ===========================
+    function updateDate() {
+      const now = new Date();
+      const opts = { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' };
+      document.getElementById('topbarDate').textContent = now.toLocaleDateString('id-ID', opts);
+    }
+
+    // ===========================
+    // ESCAPE HTML
+    // ===========================
+    function escHtml(str) {
+      if (!str) return '';
+      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+
+    // ===========================
+    // PLANNING TABS
+    // ===========================
+    let currentPlanTab = 'tugas';
+
+    function switchPlanningTab(tab, el) {
+      currentPlanTab = tab;
+      document.querySelectorAll('.planning-tab').forEach(b => b.classList.remove('active'));
+      el.classList.add('active');
+      document.querySelectorAll('.plan-tab-content').forEach(c => c.style.display = 'none');
+      document.getElementById('planTab-' + tab).style.display = 'block';
+
+      const actionBtn = document.getElementById('planningActionBtn');
+      if (tab === 'tugas') {
+        actionBtn.innerHTML = '<button class="btn btn-primary" onclick="openModal(\'planningModal\')">＋ Tambah Tugas</button>';
+      } else if (tab === 'dokumen') {
+        actionBtn.innerHTML = '<button class="btn btn-primary" onclick="openModal(\'docModal\')">＋ Upload Berkas</button>';
+        renderDocuments();
+      } else if (tab === 'jurnal') {
+        actionBtn.innerHTML = '<button class="btn btn-primary" onclick="newJournalEntry()">＋ Jurnal Baru</button>';
+        renderJournalList();
+      }
+    }
+
+    // ===========================
+    // INDEXEDDB — file storage
+    // ===========================
+    let idb = null;
+    function openIDB() {
+      return new Promise((resolve, reject) => {
+        if (idb) { resolve(idb); return; }
+        const req = indexedDB.open('dashboard_db', 1);
+        req.onupgradeneeded = e => {
+          const db = e.target.result;
+          if (!db.objectStoreNames.contains('documents')) {
+            db.createObjectStore('documents', { keyPath: 'id' });
+          }
+          if (!db.objectStoreNames.contains('journals')) {
+            db.createObjectStore('journals', { keyPath: 'id' });
+          }
+        };
+        req.onsuccess = e => { idb = e.target.result; resolve(idb); };
+        req.onerror = e => reject(e);
+      });
+    }
+
+    function idbGetAll(store) {
+      return openIDB().then(db => new Promise((resolve, reject) => {
+        const tx = db.transaction(store, 'readonly');
+        const req = tx.objectStore(store).getAll();
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = e => reject(e);
+      }));
+    }
+
+    function idbPut(store, item) {
+      return openIDB().then(db => new Promise((resolve, reject) => {
+        const tx = db.transaction(store, 'readwrite');
+        const req = tx.objectStore(store).put(item);
+        req.onsuccess = () => resolve();
+        req.onerror = e => reject(e);
+      }));
+    }
+
+    function idbDelete(store, id) {
+      return openIDB().then(db => new Promise((resolve, reject) => {
+        const tx = db.transaction(store, 'readwrite');
+        const req = tx.objectStore(store).delete(id);
+        req.onsuccess = () => resolve();
+        req.onerror = e => reject(e);
+      }));
+    }
+
+    // ===========================
+    // DOKUMEN / BERKAS
+    // ===========================
+    let pendingModalFiles = [];
+    let docFilter = 'semua';
+
+    const docCatLabel = {
+      pekerjaan: '💼 Pekerjaan', pendidikan: '📚 Pendidikan',
+      pribadi: '🏠 Pribadi', keuangan: '💰 Keuangan', lainnya: '📦 Lainnya'
+    };
+
+    const fileTypeIcon = type => {
+      if (!type) return '📄';
+      if (type.startsWith('image/')) return '🖼️';
+      if (type === 'application/pdf') return '📕';
+      if (type.includes('word') || type.includes('document')) return '📝';
+      if (type.includes('sheet') || type.includes('excel') || type.includes('csv')) return '📊';
+      if (type.includes('presentation') || type.includes('powerpoint')) return '📊';
+      if (type.includes('zip') || type.includes('rar') || type.includes('compressed')) return '🗜️';
+      if (type.startsWith('video/')) return '🎬';
+      if (type.startsWith('audio/')) return '🎵';
+      if (type.includes('text/')) return '📄';
+      return '📎';
+    };
+
+    function formatFileSize(bytes) {
+      if (bytes < 1024) return bytes + ' B';
+      if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+      return (bytes / 1048576).toFixed(1) + ' MB';
+    }
+
+    // Drag & Drop on drop zone
+    function onDragOver(e) { e.preventDefault(); document.getElementById('dropZone').classList.add('dragover'); }
+    function onDragLeave(e) { document.getElementById('dropZone').classList.remove('dragover'); }
+    function onDrop(e) {
+      e.preventDefault();
+      document.getElementById('dropZone').classList.remove('dragover');
+      const files = Array.from(e.dataTransfer.files);
+      processDroppedFiles(files);
+    }
+
+    function handleFileSelect(e) {
+      processDroppedFiles(Array.from(e.target.files));
+      e.target.value = '';
+    }
+
+    function handleModalFileSelect(e) {
+      pendingModalFiles = Array.from(e.target.files);
+      const el = document.getElementById('modalSelectedFiles');
+      el.innerHTML = pendingModalFiles.map(f => `<div>📎 ${escHtml(f.name)} (${formatFileSize(f.size)})</div>`).join('');
+    }
+
+    function processDroppedFiles(files) {
+      if (!files.length) return;
+      const MAX = 50 * 1024 * 1024;
+      let saved = 0;
+      let total = files.length;
+      files.forEach(file => {
+        if (file.size > MAX) { showToast(`${file.name}: file terlalu besar (maks 50MB)`, 'error'); total--; return; }
+        const reader = new FileReader();
+        reader.onload = async e => {
+          const doc = {
+            id: uid(), name: file.name, type: file.type, size: file.size,
+            category: 'lainnya', note: '', data: e.target.result,
+            createdAt: new Date().toISOString()
+          };
+          await idbPut('documents', doc);
+          saved++;
+          if (saved === total) { renderDocuments(); showToast(`${saved} berkas berhasil disimpan! 📁`, 'success'); }
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function saveDocuments() {
+      if (!pendingModalFiles.length) { showToast('Pilih file terlebih dahulu!', 'error'); return; }
+      const name = document.getElementById('docName').value.trim();
+      const category = document.getElementById('docCategory').value;
+      const note = document.getElementById('docNote').value.trim();
+      const MAX = 50 * 1024 * 1024;
+      let saved = 0;
+      const total = pendingModalFiles.length;
+
+      pendingModalFiles.forEach(file => {
+        if (file.size > MAX) { showToast(`${file.name}: terlalu besar`, 'error'); return; }
+        const reader = new FileReader();
+        reader.onload = async e => {
+          const doc = {
+            id: uid(),
+            name: (total === 1 && name) ? name : file.name,
+            type: file.type, size: file.size,
+            category, note, data: e.target.result,
+            createdAt: new Date().toISOString()
+          };
+          await idbPut('documents', doc);
+          saved++;
+          if (saved === total) {
+            closeModal('docModal');
+            pendingModalFiles = [];
+            document.getElementById('modalSelectedFiles').innerHTML = '';
+            document.getElementById('docName').value = '';
+            document.getElementById('docNote').value = '';
+            renderDocuments();
+            showToast(`${saved} berkas berhasil disimpan! 📁`, 'success');
+          }
+        };
+        reader.readAsDataURL(file);
+      });
+    }
+
+    function setDocFilter(f, el) {
+      docFilter = f;
+      document.querySelectorAll('#planTab-dokumen .filter-btn').forEach(b => b.classList.remove('active'));
+      el.classList.add('active');
+      renderDocuments();
+    }
+
+    async function renderDocuments() {
+      const docs = await idbGetAll('documents');
+      const filtered = docFilter === 'semua' ? docs : docs.filter(d => d.category === docFilter);
+      filtered.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+
+      const list = document.getElementById('docList');
+      if (filtered.length === 0) {
+        list.innerHTML = `<div class="empty-state" style="grid-column:1/-1;"><span class="empty-emoji">📂</span><div class="empty-title">Belum ada berkas</div><div class="empty-desc">Upload file, PDF, gambar, atau dokumen penting kamu.</div></div>`;
+        return;
+      }
+
+      list.innerHTML = filtered.map(doc => {
+        const viewable = isViewable(doc.type);
+        return `
+        <div class="doc-card ${viewable ? 'doc-clickable' : ''}" ${viewable ? `onclick="openDocViewer('${doc.id}')"` : ''} title="${viewable ? 'Klik untuk membuka' : ''}">
+          <div class="doc-icon">${fileTypeIcon(doc.type)}</div>
+          <div class="doc-info">
+            <div class="doc-name" title="${escHtml(doc.name)}">${escHtml(doc.name)}</div>
+            <div class="doc-meta">
+              <span class="badge" style="background:rgba(99,102,241,0.1);color:var(--primary);font-size:11px;">${docCatLabel[doc.category] || doc.category}</span>
+              <span style="font-size:12px;color:var(--text-muted);">${formatFileSize(doc.size)}</span>
+              ${viewable ? '<span class="doc-viewable-badge">👁 Bisa dibaca</span>' : ''}
+            </div>
+            ${doc.note ? `<div class="doc-note">${escHtml(doc.note)}</div>` : ''}
+            <div style="font-size:11px;color:var(--text-muted);margin-top:4px;">📅 ${new Date(doc.createdAt).toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'})}</div>
+          </div>
+          <div class="doc-actions" onclick="event.stopPropagation()">
+            ${viewable ? `<button class="btn btn-icon btn-sm" onclick="openDocViewer('${doc.id}')" title="Baca / Lihat">👁️</button>` : ''}
+            <button class="btn btn-icon btn-sm" onclick="downloadDoc('${doc.id}')" title="Download">⬇️</button>
+            <button class="btn btn-icon btn-sm" onclick="deleteDoc('${doc.id}')" title="Hapus">🗑️</button>
+          </div>
+        </div>`;
+      }).join('');
+    }
+
+    function isViewable(type) {
+      if (!type) return false;
+      return (
+        type.startsWith('image/') ||
+        type.startsWith('video/') ||
+        type.startsWith('audio/') ||
+        type === 'application/pdf' ||
+        type.startsWith('text/') ||
+        type === 'application/json' ||
+        type === 'application/xml' ||
+        ['application/javascript','application/x-javascript'].includes(type)
+      );
+    }
+
+    // base64 data URL → Blob URL
+    function dataURLtoObjectURL(dataURL) {
+      const [header, b64] = dataURL.split(',');
+      const mime = header.match(/:(.*?);/)[1];
+      const binary = atob(b64);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+      return URL.createObjectURL(new Blob([bytes], { type: mime }));
+    }
+
+    async function openDocViewer(id) {
+      const docs = await idbGetAll('documents');
+      const doc = docs.find(d => d.id === id);
+      if (!doc) return;
+
+      // Build viewer overlay
+      const overlay = document.createElement('div');
+      overlay.id = 'docViewerOverlay';
+      overlay.className = 'doc-viewer-overlay';
+
+      const type = doc.type || '';
+      let contentHTML = '';
+      let objectURL = null;
+
+      if (type.startsWith('image/')) {
+        // ---- IMAGE ----
+        contentHTML = `<div class="doc-viewer-img-wrap"><img src="${doc.data}" class="doc-viewer-img" alt="${escHtml(doc.name)}"></div>`;
+
+      } else if (type === 'application/pdf') {
+        // ---- PDF ----
+        objectURL = dataURLtoObjectURL(doc.data);
+        contentHTML = `<iframe src="${objectURL}" class="doc-viewer-frame" title="${escHtml(doc.name)}"></iframe>`;
+
+      } else if (type.startsWith('video/')) {
+        // ---- VIDEO ----
+        objectURL = dataURLtoObjectURL(doc.data);
+        contentHTML = `<div class="doc-viewer-media-wrap"><video src="${objectURL}" controls class="doc-viewer-video"></video></div>`;
+
+      } else if (type.startsWith('audio/')) {
+        // ---- AUDIO ----
+        objectURL = dataURLtoObjectURL(doc.data);
+        contentHTML = `<div class="doc-viewer-media-wrap doc-viewer-audio-wrap"><div style="font-size:4rem;margin-bottom:16px;">🎵</div><div style="font-weight:600;margin-bottom:16px;">${escHtml(doc.name)}</div><audio src="${objectURL}" controls style="width:100%;max-width:400px;"></audio></div>`;
+
+      } else if (type.startsWith('text/') || type === 'application/json' || type === 'application/xml' || type.includes('javascript')) {
+        // ---- TEXT / CODE ----
+        // decode base64 to text
+        const b64 = doc.data.split(',')[1] || '';
+        let text = '';
+        try { text = decodeURIComponent(escape(atob(b64))); } catch(e) { text = atob(b64); }
+        const isCode = !type.includes('text/plain') && !type.includes('text/html');
+        const escaped = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        contentHTML = `<div class="doc-viewer-text-wrap"><pre class="doc-viewer-pre ${isCode ? 'doc-viewer-code' : ''}">${escaped}</pre></div>`;
+
+      } else {
+        contentHTML = `<div class="doc-viewer-unsupported"><div style="font-size:4rem;">${fileTypeIcon(type)}</div><div style="font-size:1.1rem;font-weight:600;margin:12px 0;">${escHtml(doc.name)}</div><p style="color:var(--text-secondary);margin-bottom:20px;">Format ini tidak bisa ditampilkan langsung di browser.</p><button class="btn btn-primary" onclick="downloadDoc('${doc.id}')">⬇️ Download untuk dibuka</button></div>`;
+      }
+
+      overlay.innerHTML = `
+        <div class="doc-viewer-box">
+          <div class="doc-viewer-header">
+            <div class="doc-viewer-title">
+              <span>${fileTypeIcon(type)}</span>
+              <span>${escHtml(doc.name)}</span>
+              <span class="doc-viewer-size">${formatFileSize(doc.size)}</span>
+            </div>
+            <div class="doc-viewer-header-actions">
+              <button class="btn btn-outline btn-sm" onclick="downloadDoc('${doc.id}')">⬇️ Download</button>
+              <button class="doc-viewer-close" onclick="closeDocViewer()">✕</button>
+            </div>
+          </div>
+          <div class="doc-viewer-body">${contentHTML}</div>
+        </div>`;
+
+      document.body.appendChild(overlay);
+      // Store objectURL for cleanup
+      overlay._objectURL = objectURL;
+    }
+
+    function closeDocViewer() {
+      const overlay = document.getElementById('docViewerOverlay');
+      if (!overlay) return;
+      if (overlay._objectURL) URL.revokeObjectURL(overlay._objectURL);
+      overlay.remove();
+    }
+
+    // ESC key to close viewer
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') closeDocViewer();
+    });
+
+    async function downloadDoc(id) {
+      const docs = await idbGetAll('documents');
+      const doc = docs.find(d => d.id === id);
+      if (!doc) return;
+      const a = document.createElement('a');
+      a.href = doc.data;
+      a.download = doc.name;
+      a.click();
+    }
+
+    function deleteDoc(id) {
+      showConfirm('Hapus Berkas?', 'Berkas ini akan dihapus secara permanen.', async () => {
+        await idbDelete('documents', id);
+        renderDocuments();
+        showToast('Berkas dihapus.', 'info');
+      }, '📁');
+    }
+
+    // ===========================
+    // JURNAL
+    // ===========================
+    let currentJournalId = null;
+
+    const journalCatLabel = {
+      harian: '📅 Harian', refleksi: '🪞 Refleksi', ide: '💡 Ide',
+      mimpi: '🌙 Mimpi', syukur: '🙏 Rasa Syukur', target: '🎯 Target'
+    };
+
+    function newJournalEntry() {
+      currentJournalId = null;
+      document.getElementById('journalTitle').value = '';
+      document.getElementById('journalDate').value = today();
+      document.getElementById('journalMood').value = '😊';
+      document.getElementById('journalCategory').value = 'harian';
+      document.getElementById('journalContent').value = '';
+      document.getElementById('journalEmptyState').style.display = 'none';
+      document.getElementById('journalForm').style.display = 'flex';
+      document.getElementById('journalTitle').focus();
+    }
+
+    function closeJournalForm() {
+      currentJournalId = null;
+      document.getElementById('journalForm').style.display = 'none';
+      document.getElementById('journalEmptyState').style.display = 'flex';
+    }
+
+    async function saveJournal() {
+      const title = document.getElementById('journalTitle').value.trim();
+      const content = document.getElementById('journalContent').value.trim();
+      const date = document.getElementById('journalDate').value;
+      const mood = document.getElementById('journalMood').value;
+      const category = document.getElementById('journalCategory').value;
+
+      if (!title) { showToast('Isi judul jurnal!', 'error'); return; }
+      if (!content) { showToast('Isi konten jurnal!', 'error'); return; }
+
+      const entry = {
+        id: currentJournalId || uid(),
+        title, content, date: date || today(),
+        mood, category,
+        updatedAt: new Date().toISOString(),
+        createdAt: currentJournalId ? undefined : new Date().toISOString()
+      };
+      if (currentJournalId) {
+        const all = await idbGetAll('journals');
+        const existing = all.find(j => j.id === currentJournalId);
+        if (existing) entry.createdAt = existing.createdAt;
+      }
+
+      await idbPut('journals', entry);
+      currentJournalId = entry.id;
+      renderJournalList();
+      showToast('Jurnal berhasil disimpan! 📓', 'success');
+    }
+
+    async function renderJournalList() {
+      const journals = await idbGetAll('journals');
+      journals.sort((a, b) => (b.date || b.createdAt).localeCompare(a.date || a.createdAt));
+
+      const list = document.getElementById('journalList');
+      if (journals.length === 0) {
+        list.innerHTML = `<div style="padding:20px;text-align:center;color:var(--text-muted);font-size:14px;">📓 Belum ada jurnal.<br>Mulai menulis sekarang!</div>`;
+        return;
+      }
+
+      list.innerHTML = journals.map(j => `
+        <div class="journal-list-item ${currentJournalId === j.id ? 'active' : ''}" onclick="openJournal('${j.id}')">
+          <div class="journal-item-top">
+            <span class="journal-item-mood">${j.mood || '😊'}</span>
+            <span class="journal-item-date">${formatDate(j.date)}</span>
+          </div>
+          <div class="journal-item-title">${escHtml(j.title)}</div>
+          <div class="journal-item-preview">${escHtml((j.content || '').substring(0, 60))}...</div>
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:6px;">
+            <span class="badge" style="font-size:10px;background:rgba(99,102,241,0.1);color:var(--primary);">${journalCatLabel[j.category] || j.category}</span>
+            <button class="btn btn-icon" style="font-size:12px;padding:2px 6px;" onclick="event.stopPropagation();deleteJournal('${j.id}')">🗑️</button>
+          </div>
+        </div>`).join('');
+    }
+
+    async function openJournal(id) {
+      const journals = await idbGetAll('journals');
+      const j = journals.find(j => j.id === id);
+      if (!j) return;
+      currentJournalId = id;
+      document.getElementById('journalTitle').value = j.title;
+      document.getElementById('journalDate').value = j.date;
+      document.getElementById('journalMood').value = j.mood || '😊';
+      document.getElementById('journalCategory').value = j.category || 'harian';
+      document.getElementById('journalContent').value = j.content;
+      document.getElementById('journalEmptyState').style.display = 'none';
+      document.getElementById('journalForm').style.display = 'flex';
+      renderJournalList();
+    }
+
+    function deleteJournal(id) {
+      showConfirm('Hapus Jurnal?', 'Entri jurnal ini akan dihapus permanen.', async () => {
+        await idbDelete('journals', id);
+        if (currentJournalId === id) closeJournalForm();
+        renderJournalList();
+        showToast('Jurnal dihapus.', 'info');
+      }, '📓');
+    }
+
+    // ===========================
+    // INIT
+    // ===========================
+    function init() {
+      // Load theme
+      const savedTheme = localStorage.getItem('theme') || 'light';
+      document.documentElement.setAttribute('data-theme', savedTheme);
+      updateThemeUI();
+
+      // Set default month filter
+      document.getElementById('chartMonthFilter').value = getCurrentMonth();
+
+      // Date
+      updateDate();
+      setInterval(updateDate, 60000);
+
+      // Render initial
+      updateBadges();
+      renderFinancePage();
+
+      // Responsive resize
+      window.addEventListener('resize', () => {
+        if (currentSection === 'keuangan') drawFinanceChart(document.getElementById('chartMonthFilter').value);
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+
+</html>
